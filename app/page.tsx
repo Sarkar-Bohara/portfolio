@@ -5,7 +5,7 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  let rows = [];
+  let rows: any[] = [];
   try {
     // Try to fetch data. If table doesn't exist, this might fail or return empty.
     // We'll handle the table creation in the API route or manual setup, 
