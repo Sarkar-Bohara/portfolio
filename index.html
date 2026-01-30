@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --background-color: #1a1a2e;
+            --primary-color: #e94560;
+            --secondary-color: #0f3460;
+            --text-color: #e0e0e0;
+            --card-background: rgba(15, 52, 96, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 40px;
+            background: var(--card-background);
+            border-radius: 25px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            text-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            line-height: 1.7;
+            opacity: 0.9;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .flip-card {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            perspective: 1000px;
+            margin-bottom: 15px;
+        }
+
+        .flip-card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem;
+            font-weight: 600;
+            border-radius: 10px;
+            background: var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        
+        .notification {
+            margin-top: 40px;
+            font-size: 1.2rem;
+            font-weight: 300;
+            min-height: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.8rem; }
+            .subtitle { font-size: 1rem; }
+            .flip-card { width: 80px; height: 80px; }
+            .flip-card-front, .flip-card-back { font-size: 2.5rem; }
+            .countdown { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="container">
+        <h1>Something Big is Coming</h1>
+        <p class="subtitle">We are working hard to bring you a new and exciting experience. <br>Our website will be live in:</p>
+        
+        <div class="countdown">
+            <div class="countdown-item">
+                <div class="flip-card" id="hours-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">48</div>
+                        <div class="flip-card-back">47</div>
+                    </div>
+                </div>
+                <span class="countdown-label">Hours</span>
+            </div>
+            <div class="countdown-item">
+                <div class="flip-card" id="minutes-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">00</div>
+                        <div class="flip-card-back">59</div>
+                    </div>
+                </div>
+                <span class="countdown-label">Minutes</span>
+            </div>
+            <div class="countdown-item">
+                <div class="flip-card" id="seconds-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">00</div>
+                        <div class="flip-card-back">59</div>
+                    </div>
+                </div>
+                <span class="countdown-label">Seconds</span>
+            </div>
+        </div>
+
+        <p class="notification" id="notification-text">Stay tuned for the launch!</p>
+    </div>
+
+    <script>
+        // --- Particle System ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * .4) - .2;
+                let directionY = (Math.random() * .4) - .2;
+                let color = 'rgba(224, 224, 224, 0.6)';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            initParticles();
+        });
+
+        initParticles();
+        animateParticles();
+
+        // --- Countdown Timer ---
+        const countDownDate = new Date().getTime() + (48 * 60 * 60 * 1000);
+        let previousTime = {};
+
+        function updateFlipCard(cardId, newValue) {
+            const card = document.getElementById(cardId);
+            const inner = card.querySelector('.flip-card-inner');
+            const front = card.querySelector('.flip-card-front');
+            const back = card.querySelector('.flip-card-back');
+
+            const currentValue = back.textContent;
+            if (currentValue === newValue) return;
+
+            front.textContent = currentValue;
+            back.textContent = newValue;
+
+            inner.style.transform = inner.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        }
+
+        const countdownInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById("notification-text").textContent = "We are live!";
+                // Handle countdown end state
+                updateFlipCard('hours-card', '00');
+                updateFlipCard('minutes-card', '00');
+                updateFlipCard('seconds-card', '00');
+                return;
+            }
+
+            const hours = Math.floor(distance / (1000 * 60 * 60)).toString().padStart(2, '0');
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+
+            if (previousTime.hours !== hours) updateFlipCard('hours-card', hours);
+            if (previousTime.minutes !== minutes) updateFlipCard('minutes-card', minutes);
+            if (previousTime.seconds !== seconds) updateFlipCard('seconds-card', seconds);
+            
+            previousTime = { hours, minutes, seconds };
+
+        }, 1000);
+    </script>
+</body>
+</html>
